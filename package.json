@@ -1,0 +1,12 @@
+{
+  "name": "connect",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Connect chat app with a load-balanced two-server cluster",
+  "scripts": {
+    "start": "node server/start-all.js",
+    "server:a": "node server/app-server.js A 3001",
+    "server:b": "node server/app-server.js B 3002",
+    "balancer": "node server/load-balancer.js 3000"
+  }
+}

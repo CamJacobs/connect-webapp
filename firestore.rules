@@ -1,0 +1,157 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Each user can read and write only their own data.
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Username reservations: the document ID is the lowercase username, so each one can belong to only one user.
+    // Any signed-in user may check whether a name is taken; only the owner can release it.
+    match /usernames/{name} {
+      allow get: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
+
+    // Public name and picture of each user, so people can find each other. Users can only write their own entry.
+    match /directory/{uid} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Friend requests and friendships: one document per pair of users (same ID as their DM).
+    // Messaging someone never creates a friendship; the other person has to accept a request.
+    match /friends/{pairId} {
+      allow create: if request.auth != null
+        && request.auth.uid in request.resource.data.uids
+        && request.resource.data.uids.size() == 2
+        && request.resource.data.requester == request.auth.uid
+        && request.resource.data.status == 'pending';
+      allow read: if request.auth != null && request.auth.uid in resource.data.uids;
+      allow update: if request.auth != null
+        && request.auth.uid in resource.data.uids
+        && request.resource.data.uids == resource.data.uids
+        && (
+          // Only the person who was asked can accept
+          (resource.data.requester != request.auth.uid
+            && resource.data.status == 'pending'
+            && request.resource.data.status == 'accepted'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']))
+          // Either person can refresh names and pictures
+          || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members'])
+        );
+      // Either person can decline, cancel, or end a friendship
+      allow delete: if request.auth != null && request.auth.uid in resource.data.uids;
+    }
+
+    // Direct messages: one document per pair of users, plus the messages inside it.
+    match /dms/{dmId} {
+      function isMember() {
+        return request.auth.uid in resource.data.memberUids;
+      }
+
+      allow create: if request.auth != null
+        && request.auth.uid in request.resource.data.memberUids
+        && request.resource.data.memberUids.size() == 2;
+      allow read: if request.auth != null && isMember();
+      // Members can refresh names and pictures and record the time of the latest message
+      allow update: if request.auth != null && isMember()
+        && request.resource.data.memberUids == resource.data.memberUids
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members', 'lastMessageTs', 'lastSenderUid']);
+
+      match /messages/{messageId} {
+        function dm() {
+          return get(/databases/$(database)/documents/dms/$(dmId)).data;
+        }
+        function member() {
+          return request.auth != null && request.auth.uid in dm().memberUids;
+        }
+
+        allow read: if member();
+        allow create: if member() && request.resource.data.authorUid == request.auth.uid;
+        // Authors can edit their own messages; either person can pin, reply in a thread, or react.
+        allow update: if member() && (
+          resource.data.authorUid == request.auth.uid
+          || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pinned', 'replies', 'reactions'])
+        );
+        allow delete: if member() && resource.data.authorUid == request.auth.uid;
+      }
+    }
+
+    // Invite code -> server link. Anyone signed in can look one up; only the server's host can change or delete it.
+    match /invites/{code} {
+      allow read, create: if request.auth != null;
+      allow update, delete: if request.auth != null
+        && get(/databases/$(database)/documents/servers/$(resource.data.serverId)).data.hostUid == request.auth.uid;
+    }
+
+    // Shared servers. Roles: host (creator), mod (appointed by host), member.
+    match /servers/{serverId} {
+      function isMember() {
+        return request.auth.uid in resource.data.memberUids;
+      }
+      function myRole() {
+        return resource.data.members[request.auth.uid].role;
+      }
+      function isStaff() {
+        return isMember() && (myRole() == 'host' || myRole() == 'mod');
+      }
+      function changed() {
+        return request.resource.data.diff(resource.data).affectedKeys();
+      }
+
+      allow create: if request.auth != null
+        && request.resource.data.hostUid == request.auth.uid
+        && request.resource.data.memberUids == [request.auth.uid]
+        && request.resource.data.members[request.auth.uid].role == 'host';
+
+      allow read: if request.auth != null && isMember();
+
+      // Only the host can delete a server.
+      allow delete: if request.auth != null && resource.data.hostUid == request.auth.uid;
+
+      allow update: if request.auth != null && (
+        // Host: anything except giving the server away.
+        (resource.data.hostUid == request.auth.uid && request.resource.data.hostUid == resource.data.hostUid)
+        // Mods: manage channels and kick members (not the host or other mods through the app).
+        || (isStaff() && changed().hasOnly(['channels', 'members', 'memberUids'])
+            && request.resource.data.hostUid == resource.data.hostUid)
+        // Anyone: join as a regular member.
+        || (!(request.auth.uid in resource.data.memberUids)
+            && changed().hasOnly(['members', 'memberUids'])
+            && request.resource.data.memberUids == resource.data.memberUids.concat([request.auth.uid])
+            && request.resource.data.members[request.auth.uid].role == 'member')
+        // Members: leave, or change their own display name.
+        || (isMember() && changed().hasOnly(['members', 'memberUids'])
+            && request.resource.data.memberUids == resource.data.memberUids.removeAll([request.auth.uid]))
+        || (isMember() && changed().hasOnly(['members'])
+            && request.resource.data.members.diff(resource.data.members).affectedKeys().hasOnly([request.auth.uid])
+            && request.resource.data.members[request.auth.uid].role == myRole())
+      );
+
+      match /messages/{messageId} {
+        function server() {
+          return get(/databases/$(database)/documents/servers/$(serverId)).data;
+        }
+        function member() {
+          return request.auth != null && request.auth.uid in server().memberUids;
+        }
+        function staff() {
+          return member() && server().members[request.auth.uid].role in ['host', 'mod'];
+        }
+
+        allow read: if member();
+        allow create: if member() && request.resource.data.authorUid == request.auth.uid;
+        // Authors can edit their own messages; any member can pin, reply in a thread, or react.
+        allow update: if member() && (
+          resource.data.authorUid == request.auth.uid
+          || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pinned', 'replies', 'reactions'])
+        );
+        // Authors can delete their own messages; host and mods can delete any.
+        allow delete: if member() && (resource.data.authorUid == request.auth.uid || staff());
+      }
+    }
+  }
+}
