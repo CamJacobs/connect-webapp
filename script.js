@@ -79,6 +79,7 @@ const messageForm = $("message-form");
 const navToggle = $("nav-toggle");
 const navBadge = $("nav-badge");
 const navBackdrop = $("nav-backdrop");
+const membersToggle = $("members-toggle");
 const tabServers = $("tab-servers");
 const tabMessages = $("tab-messages");
 const tabFriends = $("tab-friends");
@@ -1663,13 +1664,42 @@ function resetTransient() {
   serverMenu.hidden = true;
 }
 
+// When a phone's keyboard opens (or the browser scrolls the page to reveal an input), keep the app exactly
+// as big as the visible area so the message box and tab bar don't slide off the bottom.
+function fitToVisibleArea() {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  const root = document.documentElement;
+  root.style.setProperty("--app-height", `${vv.height}px`);
+  root.style.setProperty("--app-top", `${vv.offsetTop}px`);
+  if (window.scrollY) window.scrollTo(0, 0);
+}
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", fitToVisibleArea);
+  window.visualViewport.addEventListener("scroll", fitToVisibleArea);
+  fitToVisibleArea();
+}
+
 // On phones the server rail and channel list slide in over the chat; this opens and closes them.
 function setNavOpen(open) {
   loggedInView.classList.toggle("nav-open", open);
   navToggle.setAttribute("aria-expanded", String(open));
+  // Only one slide-over at a time: the member list closes whenever the menu opens or closes
+  setMembersOpen(false);
+}
+
+function setMembersOpen(open) {
+  loggedInView.classList.toggle("members-open", open);
+  membersToggle.setAttribute("aria-expanded", String(open));
 }
 
 navToggle.addEventListener("click", () => setNavOpen(!loggedInView.classList.contains("nav-open")));
+membersToggle.addEventListener("click", () => {
+  const open = !loggedInView.classList.contains("members-open");
+  loggedInView.classList.remove("nav-open");
+  setMembersOpen(open);
+});
 navBackdrop.addEventListener("click", () => setNavOpen(false));
 
 // Bottom tabs (phones): switch what the list shows while the menu stays open, like Discord's home screen.
@@ -2077,6 +2107,15 @@ function toggleReaction(messageId, emoji) {
 }
 
 messagesList.addEventListener("click", (e) => {
+  // Touch screens have no hover, so tapping a message shows its action bar
+  if (window.matchMedia("(max-width: 700px), (hover: none)").matches) {
+    const tappedRow = e.target.closest(".message");
+    messagesList.querySelectorAll(".message.tapped").forEach((row) => {
+      if (row !== tappedRow) row.classList.remove("tapped");
+    });
+    if (tappedRow && !e.target.closest("[data-action], a, input, textarea, button")) tappedRow.classList.toggle("tapped");
+  }
+
   const button = e.target.closest("[data-action]");
   if (!button) return;
   const row = button.closest(".message");
