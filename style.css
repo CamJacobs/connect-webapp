@@ -2136,7 +2136,8 @@ button.member {
 
 .nav-toggle,
 .nav-backdrop,
-.mobile-tabs {
+.mobile-tabs,
+.members-toggle {
   display: none;
 }
 
@@ -2145,6 +2146,21 @@ button.member {
   .app-shell.show-members,
   .app-shell.show-thread {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Sized to the visible area (script.js keeps --app-height and --app-top current) so the keyboard can't push the bottom off screen.
+     The transform makes the shell the reference box for the fixed drawers, tab bar and dialogs inside it. */
+  .app-shell {
+    inset: auto;
+    top: var(--app-top, 0px);
+    left: 0;
+    width: 100%;
+    height: var(--app-height, 100dvh);
+    transform: translateZ(0);
+  }
+
+  html {
+    overscroll-behavior: none;
   }
 
   .server-rail,
@@ -2167,14 +2183,14 @@ button.member {
   .server-rail {
     left: 0;
     width: 72px;
-    padding-top: calc(0.75rem + env(safe-area-inset-top));
+    padding-top: calc(0.75rem + max(env(safe-area-inset-top), 36px));
     overflow-y: auto;
   }
 
   .channel-sidebar {
     left: 72px;
     width: calc(100vw - 72px - 40px);
-    padding-top: env(safe-area-inset-top);
+    padding-top: max(env(safe-area-inset-top), 36px);
     background: #101114;
     border-right: none;
     border-top-left-radius: 20px;
@@ -2261,8 +2277,8 @@ button.member {
 
   /* Header: menu button, title that can shrink, compact actions */
   .chat-header {
-    height: calc(52px + env(safe-area-inset-top));
-    padding: env(safe-area-inset-top) 0.5rem 0;
+    height: calc(56px + max(env(safe-area-inset-top), 24px));
+    padding: max(env(safe-area-inset-top), 24px) 0.5rem 0;
     gap: 0.25rem;
   }
 
@@ -2325,13 +2341,56 @@ button.member {
     height: auto;
   }
 
-  /* There is no hover on touch, so the toolbar shows while a message is focused or tapped */
-  .message:focus-within .message-toolbar {
+  /* There is no hover on touch, so tapping a message shows its action bar */
+  .message.tapped .message-toolbar {
     display: flex;
+  }
+
+  .message.tapped {
+    background: rgba(255, 255, 255, 0.04);
   }
 
   .toolbar-button {
     padding: 0.45rem;
+  }
+
+  /* Controls that only appear on hover on desktop are always visible here */
+  .channel-add {
+    opacity: 1;
+    padding: 0.4rem;
+  }
+
+  .channel-delete {
+    display: inline-flex;
+    padding: 0.4rem;
+  }
+
+  /* Member list: slides in from the right, opened from the header button */
+  .members-toggle {
+    display: flex;
+  }
+
+  .app-shell:not(.show-members) .members-toggle {
+    display: none;
+  }
+
+  .app-shell.show-members.members-open .member-list {
+    display: block;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 44;
+    width: min(300px, 85vw);
+    background: #101114;
+    padding-top: calc(1rem + max(env(safe-area-inset-top), 24px));
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .app-shell.members-open .nav-backdrop {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   /* Message box: 16px text stops iOS zooming in, and the box clears the home bar */
@@ -2369,7 +2428,7 @@ button.member {
 
   /* Popovers fill the width under the header instead of hanging off the right edge */
   .popover {
-    top: calc(56px + env(safe-area-inset-top));
+    top: calc(56px + max(env(safe-area-inset-top), 24px));
     left: 0.5rem;
     right: 0.5rem;
     width: auto;
@@ -2390,7 +2449,7 @@ button.member {
   .app-shell.show-thread .thread-panel {
     width: 100%;
     z-index: 42;
-    padding-top: env(safe-area-inset-top);
+    padding-top: max(env(safe-area-inset-top), 24px);
   }
 
   .thread-form {
