@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Connect</title>
+<link rel="icon" type="image/png" href="assets/logo-c.png">
+<link rel="stylesheet" href="style.css">
+<script>
+  // A refresh while logged in shows the loading screen instead of the intro or the login card.
+  try {
+    if (sessionStorage.getItem("connect:session") === "1") document.documentElement.classList.add("restoring");
+  } catch (err) {
+    // storage blocked: the normal intro plays
+  }
+</script>
+</head>
+<body>
+
+  <div id="loading" role="status" aria-label="Loading Connect">
+    <img class="loading-logo" src="assets/logo-c.png" alt="Connect">
+    <div class="loading-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+  </div>
+
+  <section id="intro" aria-label="Welcome to Connect">
+    <h1 class="intro-text">
+      <span class="word" id="word-welcome">Welcome</span>
+      <span class="word" id="word-to">to</span>
+      <span class="word wordmark" id="word-connect"><img class="logo-glyph" src="assets/logo-c.png" alt="C">onnect</span>
+    </h1>
+  </section>
+
+  <main id="login" hidden>
+    <div class="login-card">
+      <img class="login-logo" src="assets/logo-c.png" alt="Connect">
+
+      <div id="login-view">
+        <p class="login-error" id="login-error" hidden></p>
+
+        <form id="login-form" class="login-form">
+          <label class="field">
+            <span>Email</span>
+            <input type="email" name="email" autocomplete="username" required>
+          </label>
+          <label class="field">
+            <span class="field-label-row">
+              <span>Password</span>
+              <a href="#" class="forgot-link" id="forgot-link">Forgot password?</a>
+            </span>
+            <span class="password-wrap">
+              <input type="password" id="password-input" name="password" autocomplete="current-password" required>
+              <button type="button" class="toggle-password" id="toggle-password" aria-label="Show password" aria-pressed="false">
+                <svg class="icon-eye" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12Z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg class="icon-eye-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden>
+                  <path d="M3 3l18 18"/>
+                  <path d="M10.6 5.1A10.6 10.6 0 0 1 12 5c7 0 10.5 7 10.5 7a13.2 13.2 0 0 1-3.1 4M6.6 6.6C3.4 8.5 1.5 12 1.5 12s3.5 7 10.5 7c1.6 0 3-.3 4.2-.9"/>
+                  <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>
+                </svg>
+              </button>
+            </span>
+          </label>
+          <button type="submit" class="login-button" id="login-submit">Log in</button>
+        </form>
+
+        <p class="login-footer">Don't have an account? <a href="#" id="show-signup">Sign up</a></p>
+      </div>
+
+      <div id="signup-view" hidden>
+        <p class="login-error" id="signup-error" hidden></p>
+
+        <form id="signup-form" class="login-form">
+          <label class="field">
+            <span>Email</span>
+            <input type="email" name="email" autocomplete="email" required>
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <span class="password-wrap">
+              <input type="password" id="signup-password-input" name="password" autocomplete="new-password" required minlength="6">
+              <button type="button" class="toggle-password" id="signup-toggle-password" aria-label="Show password" aria-pressed="false">
+                <svg class="icon-eye" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12Z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg class="icon-eye-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden>
+                  <path d="M3 3l18 18"/>
+                  <path d="M10.6 5.1A10.6 10.6 0 0 1 12 5c7 0 10.5 7 10.5 7a13.2 13.2 0 0 1-3.1 4M6.6 6.6C3.4 8.5 1.5 12 1.5 12s3.5 7 10.5 7c1.6 0 3-.3 4.2-.9"/>
+                  <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>
+                </svg>
+              </button>
+            </span>
+          </label>
+          <label class="field">
+            <span>Confirm password</span>
+            <span class="password-wrap">
+              <input type="password" id="signup-confirm-input" name="confirmPassword" autocomplete="new-password" required minlength="6">
+              <button type="button" class="toggle-password" id="signup-confirm-toggle" aria-label="Show password" aria-pressed="false">
+                <svg class="icon-eye" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12Z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg class="icon-eye-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden>
+                  <path d="M3 3l18 18"/>
+                  <path d="M10.6 5.1A10.6 10.6 0 0 1 12 5c7 0 10.5 7 10.5 7a13.2 13.2 0 0 1-3.1 4M6.6 6.6C3.4 8.5 1.5 12 1.5 12s3.5 7 10.5 7c1.6 0 3-.3 4.2-.9"/>
+                  <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>
+                </svg>
+              </button>
+            </span>
+          </label>
+          <button type="submit" class="login-button" id="signup-submit">Sign up</button>
+        </form>
+
+        <p class="login-footer">Already have an account? <a href="#" id="show-login">Log in</a></p>
+      </div>
+    </div>
+
+    <div id="logged-in-view" class="app-shell" hidden>
+      <div class="nav-backdrop" id="nav-backdrop"></div>
+      <nav class="mobile-tabs" id="mobile-tabs" aria-label="Sections">
+        <button type="button" class="mobile-tab" id="tab-servers" data-tab="servers">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          <span>Servers</span>
+        </button>
+        <button type="button" class="mobile-tab" id="tab-messages" data-tab="messages">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-4-1L3 20l1-5.5a8.38 8.38 0 0 1-1-4A8.5 8.5 0 0 1 11.5 3 8.38 8.38 0 0 1 21 11.5Z"/></svg>
+          <span>Messages</span>
+          <span class="badge" id="tab-messages-badge" hidden></span>
+        </button>
+        <button type="button" class="mobile-tab" id="tab-friends" data-tab="friends">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Friends</span>
+          <span class="badge" id="tab-friends-badge" hidden></span>
+        </button>
+      </nav>
+      <nav class="server-rail">
+        <button type="button" class="server-icon brand" id="dm-button" data-tooltip="Direct Messages" aria-label="Direct Messages">
+          <span class="pill"></span>
+          <img class="brand-logo" src="assets/logo-c.png" alt="Connect">
+          <span class="badge" id="dm-badge" hidden></span>
+        </button>
+        <div class="server-divider"></div>
+        <div class="rail-servers" id="rail-servers"></div>
+        <button type="button" class="server-icon add-server" id="add-server-button" data-tooltip="Add a server" aria-label="Add a server">
+          <span class="pill"></span>+
+        </button>
+      </nav>
+
+      <aside class="channel-sidebar">
+        <div id="dm-panel" hidden>
+          <div class="dm-search-wrap">
+            <input type="text" id="dm-search" class="dm-search" placeholder="Find or start a conversation" autocomplete="off">
+            <div class="dm-search-results" id="dm-search-results" hidden></div>
+          </div>
+
+          <div class="dm-shortcuts">
+            <button type="button" class="dm-shortcut" id="friends-shortcut">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              Friends
+              <span class="unread-pill" id="friends-pill" hidden></span>
+            </button>
+          </div>
+
+          <div class="dm-section-header">
+            <span>Direct Messages</span>
+            <button type="button" class="icon-button" id="new-dm-button" data-tooltip="New Message" aria-label="New Message">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="channel-list" id="dm-list"></div>
+        </div>
+
+        <div id="server-panel">
+          <header class="server-name">
+            <button type="button" class="server-menu-trigger" id="server-menu-trigger" aria-haspopup="true">
+              <span class="server-name-text" id="server-name-text">Server</span>
+              <svg class="server-name-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+            </button>
+            <button type="button" class="icon-button server-invite" id="invite-button" data-tooltip="Invite People" aria-label="Invite People">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M19 8v6M22 11h-6"/>
+              </svg>
+            </button>
+          </header>
+
+          <div class="channel-list" id="channel-list">
+            <div class="channel-category-row">
+              <button type="button" class="channel-category-toggle" id="category-toggle" aria-expanded="true">
+                <svg class="category-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 9l6 6 6-6"/>
+                </svg>
+                Text Channels
+              </button>
+              <button type="button" class="icon-button channel-add" id="create-channel-button" title="Create Channel" aria-label="Create Channel">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+              </button>
+            </div>
+            <div id="channel-items"></div>
+          </div>
+        </div>
+
+        <div class="server-menu" id="server-menu" hidden>
+          <button type="button" class="server-menu-item" id="rename-server-option">Change Server Name</button>
+          <button type="button" class="server-menu-item" id="icon-server-option">Change Server Icon</button>
+          <div class="server-menu-sep" id="server-menu-sep"></div>
+          <button type="button" class="server-menu-item danger" id="leave-server-option">Leave Server</button>
+        </div>
+
+        <div class="user-bar">
+          <div class="user-avatar" id="user-avatar"></div>
+          <div class="user-meta">
+            <span class="user-name" id="user-name"></span>
+            <span class="user-status" id="user-status">Online</span>
+          </div>
+          <button type="button" class="icon-button" id="settings-button" data-tooltip="Settings" aria-label="Settings">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.43.7.72 1.19.83.31.07.51.35.51.68V12"/>
+            </svg>
+          </button>
+          <button type="button" class="icon-button" id="logout-button" data-tooltip="Log out" aria-label="Log out">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <path d="M16 17l5-5-5-5"/>
+              <path d="M21 12H9"/>
+            </svg>
+          </button>
+        </div>
+      </aside>
+
+      <main class="chat-main">
+        <header class="chat-header">
+          <button type="button" class="icon-button nav-toggle" id="nav-toggle" aria-label="Servers and channels" aria-expanded="false">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 5l-7 7 7 7"/>
+            </svg>
+            <span class="badge" id="nav-badge" hidden></span>
+          </button>
+          <span class="channel-hash" id="chat-header-symbol">#</span>
+          <span id="active-channel-name">general</span>
+
+          <div class="chat-header-actions">
+            <button type="button" class="icon-button" id="friend-button" data-tooltip="Add friend" aria-label="Add friend" hidden>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M19 8v6M22 11h-6"/>
+              </svg>
+            </button>
+            <button type="button" class="icon-button" id="threads-button" data-popover-trigger data-tooltip="Threads" aria-label="Threads">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-4-1L3 20l1-5.5a8.38 8.38 0 0 1-1-4A8.5 8.5 0 0 1 11.5 3 8.38 8.38 0 0 1 21 11.5Z"/>
+              </svg>
+            </button>
+            <button type="button" class="icon-button" id="mute-button" data-tooltip="Mute notifications" aria-label="Mute notifications" aria-pressed="false">
+              <svg class="icon-bell" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+              </svg>
+              <svg class="icon-bell-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0M18.63 13A17.9 17.9 0 0 1 18 8M6.26 6.26A5.9 5.9 0 0 0 6 8c0 7-3 9-3 9h14M18 8a6 6 0 0 0-9.33-5"/>
+                <path d="M1 1l22 22"/>
+              </svg>
+            </button>
+            <button type="button" class="icon-button" id="pinned-button" data-popover-trigger data-tooltip="Pinned Messages" aria-label="Pinned Messages">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 17v5M9 3h6l-1 7 4 3H6l4-3-1-7Z"/>
+              </svg>
+            </button>
+            <input type="text" class="chat-search" id="chat-search" placeholder="Search" aria-label="Search" autocomplete="off">
+          </div>
+        </header>
+
+        <div class="popover" id="threads-popover" hidden></div>
+        <div class="popover" id="pinned-popover" hidden></div>
+        <div class="popover popover-up" id="emoji-popover" hidden></div>
+        <div class="popover popover-up" id="gif-popover" hidden>
+          <form id="gif-form" class="gif-form">
+            <label class="field">
+              <span>Paste a GIF or image link</span>
+              <input type="text" id="gif-input" placeholder="https://..." autocomplete="off">
+            </label>
+            <button type="submit" class="login-button gif-send">Send</button>
+          </form>
+        </div>
+
+        <div class="messages" id="messages-list"></div>
+
+        <form class="message-form" id="message-form">
+          <div class="attachment-preview" id="attachment-preview" hidden>
+            <img id="attachment-preview-image" alt="Selected image">
+            <button type="button" class="attachment-remove" id="attachment-remove" aria-label="Remove image">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6 6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          <div class="message-input-wrap">
+            <input type="file" id="image-upload-input" accept="image/*" hidden>
+            <input type="text" id="message-input" autocomplete="off" placeholder="Message #general">
+            <div class="message-actions">
+              <button type="button" class="icon-button" id="upload-image-button" data-tooltip="Upload image" aria-label="Upload image">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <path d="m21 15-5-5L5 21"/>
+                </svg>
+              </button>
+              <button type="button" class="icon-button" id="gif-button" data-popover-trigger data-tooltip="Add GIF by link" aria-label="Add GIF by link">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="5" width="18" height="14" rx="2"/>
+                  <path d="M8 9v6M14 9h3M14 12h2.5M8 12h2.5"/>
+                </svg>
+              </button>
+              <button type="button" class="icon-button" id="emoji-button" data-popover-trigger data-tooltip="Open emoji picker" aria-label="Open emoji picker">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="9"/>
+                  <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                  <path d="M9 9h.01M15 9h.01"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </form>
+      </main>
+
+      <aside class="thread-panel" id="thread-panel">
+        <header class="thread-header">
+          <span class="thread-title">Thread</span>
+          <button type="button" class="icon-button" id="thread-close" aria-label="Close thread">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </header>
+        <div class="thread-body" id="thread-body"></div>
+        <form class="thread-form" id="thread-form">
+          <input type="text" id="thread-input" placeholder="Reply to thread" autocomplete="off">
+        </form>
+      </aside>
+
+      <aside class="member-list" id="member-list">
+        <p class="member-category" id="member-category">Online</p>
+        <div id="member-items"></div>
+      </aside>
+
+      <div class="modal-overlay" id="dialog-modal" hidden>
+        <div class="modal-card">
+          <h2 class="modal-title" id="dialog-title"></h2>
+          <p class="modal-subtitle" id="dialog-subtitle"></p>
+          <p class="login-error" id="dialog-error" hidden></p>
+          <form id="dialog-form">
+            <div id="dialog-fields"></div>
+            <div id="dialog-extra"></div>
+            <div class="modal-actions">
+              <button type="button" class="modal-cancel" id="dialog-cancel">Cancel</button>
+              <button type="submit" class="login-button modal-submit" id="dialog-submit">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="modal-overlay" id="add-server-modal" hidden>
+        <div class="modal-card">
+          <h2 class="modal-title">Add a server</h2>
+          <p class="modal-subtitle">Start your own or hop into an existing one.</p>
+          <button type="button" class="modal-option" id="choose-create">
+            <span class="modal-option-title">Create My Own</span>
+            <span class="modal-option-desc">Start a brand new server for you and your friends.</span>
+          </button>
+          <button type="button" class="modal-option" id="choose-join">
+            <span class="modal-option-title">Join a Server</span>
+            <span class="modal-option-desc">Enter an invite code to join an existing server.</span>
+          </button>
+          <div class="modal-actions">
+            <button type="button" class="modal-cancel" id="add-server-cancel">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-overlay" id="join-server-modal" hidden>
+        <div class="modal-card">
+          <h2 class="modal-title">Join a server</h2>
+          <p class="modal-subtitle">Enter an invite code (try CODERS, GAMING or TEAM).</p>
+          <p class="login-error" id="join-server-error" hidden></p>
+          <form id="join-server-form">
+            <label class="field">
+              <span>Invite code</span>
+              <input type="text" id="join-server-input" maxlength="12" autocomplete="off" required>
+            </label>
+            <div class="modal-actions">
+              <button type="button" class="modal-cancel" id="join-server-back">Back</button>
+              <button type="submit" class="login-button modal-submit">Join</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="modal-overlay" id="create-server-modal" hidden>
+        <div class="modal-card">
+          <h2 class="modal-title">Create a server</h2>
+          <p class="modal-subtitle">Give your new server a name.</p>
+          <form id="create-server-form">
+            <label class="field">
+              <span>Server name</span>
+              <input type="text" id="create-server-input" maxlength="40" autocomplete="off" required>
+            </label>
+            <div class="modal-actions">
+              <button type="button" class="modal-cancel" id="create-server-cancel">Back</button>
+              <button type="submit" class="login-button modal-submit">Create</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="toast" id="toast" hidden></div>
+    </div>
+  </main>
+
+  <!-- Loads the main Firebase library so the app can connect to Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+
+<!-- Loads Firebase's login tools (sign in, sign out, check login status) -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+
+<!-- Loads Firestore, the database that stores each user's data -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+<!-- Loads our Firebase project settings -->
+<script src="firebase-config.js"></script>
+
+<!-- Loads our login, logout, and auth-watching functions -->
+<script src="auth.js"></script>
+
+<!-- Loads the main code that runs the page -->
+<script src="script.js"></script>
+</body>
+</html>
